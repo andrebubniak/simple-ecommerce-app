@@ -4,7 +4,7 @@ export const graphql = async (
 ): Promise<GraphQL.QueryReturnType | GraphQL.OrderMutationReturnType> => {
 	return new Promise((resolve, reject) => {
 		// api url
-		const url = "http://localhost:8000/graphql"
+		const url = import.meta.env.PROD ? "" : "http://localhost:8000/graphql"
 
 		fetch(url, {
 			headers: {
