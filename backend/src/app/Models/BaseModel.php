@@ -32,6 +32,8 @@ abstract class BaseModel {
 	 */
 	public function __construct() {
 		$this->db = Database::getConnection();
+		// setting mysql charset
+		$this->db->exec("SET NAMES 'utf8mb4'");
 	}
 
 	/**

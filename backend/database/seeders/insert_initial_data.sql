@@ -128,4 +128,4 @@ INSERT IGNORE INTO product_attribute_items (id, attribute_id, display_value, val
 (31, 11, 'Cyan', '#03FFF7'),
 (33, 11, 'Blue', '#030BFF'),
 (34, 11, 'Black', '#000000'),
-(35, 11, 'White', '#FFFFFF'),
+(35, 11, 'White', '#FFFFFF');

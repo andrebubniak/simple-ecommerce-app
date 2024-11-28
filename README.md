@@ -15,4 +15,4 @@ A simple ecommerce web application built with PHP and React. This app allows use
 - **Backend**: PHP
 - **Database**: MySQL (for storing products and orders)
 
-[Deploy](https://andrebubniak.github.io/simple-ecommerce-app/)
+Available on [https://andrebubniak.github.io/simple-ecommerce-app/](https://andrebubniak.github.io/simple-ecommerce-app/)
