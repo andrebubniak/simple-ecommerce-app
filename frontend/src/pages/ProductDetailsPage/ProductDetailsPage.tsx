@@ -5,6 +5,7 @@ import { convertDecimal } from "../../utils/convertDecimal"
 import NoImage from "../../assets/no-image.jpg"
 import { ProductAttributes } from "./ProductAttributes"
 import { CartContext } from "../../contexts/CartContext"
+import { parseHTMLStringToReactNode } from "../../utils/parseHtmlStringToReactNode"
 
 type ProductDetailsPageState = {
 	currentCarouselImageIndex: number
@@ -12,6 +13,7 @@ type ProductDetailsPageState = {
 	loading: boolean
 	errorMessage?: string | null
 	productNotFound: boolean
+	allAttributesSelected: boolean
 }
 
 export class ProductDetailsPage extends Component<
@@ -34,6 +36,7 @@ export class ProductDetailsPage extends Component<
 			product: null,
 			errorMessage: null,
 			productNotFound: false,
+			allAttributesSelected: false,
 		}
 
 		this.productAttributesRef = createRef<ProductAttributes>()
@@ -172,6 +175,31 @@ export class ProductDetailsPage extends Component<
 		})
 	}
 
+	handleAttributeChange() {
+		// If it is called before the ref is populated, it means that there is no attributes
+		if (!this.productAttributesRef.current) {
+			this.setState((prevState) => ({
+				...prevState,
+				allAttributesSelected: true,
+			}))
+			return
+		}
+
+		const allAttributesSelected = !Object.values(
+			this.productAttributesRef.current.state.attributeItems
+		).some((value) => value === undefined)
+
+		if (
+			this.state.allAttributesSelected !== allAttributesSelected &&
+			allAttributesSelected
+		) {
+			this.setState((prevState) => ({
+				...prevState,
+				allAttributesSelected: true,
+			}))
+		}
+	}
+
 	render(): ReactNode {
 		const currentIndex = this.state.currentCarouselImageIndex
 
@@ -207,7 +235,9 @@ export class ProductDetailsPage extends Component<
 							src={img}
 							alt="image"
 							onClick={() => {
-								this.setState({ currentCarouselImageIndex: index })
+								this.setState({
+									currentCarouselImageIndex: index,
+								})
 							}}
 						/>
 					))}
@@ -221,7 +251,9 @@ export class ProductDetailsPage extends Component<
 					>
 						<div
 							className="flex flex-row absolute h-full w-full left-0 top-auto right-auto m-0 transition-transform duration-300 ease-in-out"
-							style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+							style={{
+								transform: `translateX(-${currentIndex * 100}%)`,
+							}}
 						>
 							<div className="flex flex-row w-full no-wrap">
 								{images!.map((image, index) => (
@@ -290,6 +322,7 @@ export class ProductDetailsPage extends Component<
 						<ProductAttributes
 							ref={this.productAttributesRef}
 							attributes={attributes}
+							onAttributeChange={() => this.handleAttributeChange()}
 						></ProductAttributes>
 					)}
 
@@ -302,17 +335,24 @@ export class ProductDetailsPage extends Component<
 					{in_stock && (
 						<button
 							data-testid="add-to-cart"
-							className="bg-[#5ECE7B] flex-shrink-0 text-white font-semibold text-base h-[52px] text-center w-full hover:bg-[#3f9456]"
+							className={`flex-shrink-0 text-white font-semibold text-base h-[52px] text-center w-full ${
+								this.state.allAttributesSelected
+									? "bg-[#5ECE7B] hover:bg-[#3f9456]"
+									: "bg-[#39374879]"
+							}`}
+							disabled={!this.state.allAttributesSelected}
 							onClick={(e) => this.addProductToCart(e)}
 						>
 							ADD TO CART
 						</button>
 					)}
+
 					<div
 						data-testid="product-description"
 						className="product-description"
-						dangerouslySetInnerHTML={{ __html: description || "" }}
-					></div>
+					>
+						{parseHTMLStringToReactNode(description || "")}
+					</div>
 				</div>
 			</section>
 		)

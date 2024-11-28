@@ -2,7 +2,7 @@ import { Component, ReactNode } from "react"
 import { convertKebabCase } from "../../utils/convertKebabCase"
 
 type ProductAttributesState = {
-	attributeItems: { [key: number]: number }
+	attributeItems: { [key: number]: number | undefined }
 }
 
 type ProductAttributesProps = {
@@ -14,6 +14,8 @@ type ProductAttributesProps = {
 	 * The user can change the attributes?
 	 */
 	canChangeAttributes?: boolean
+
+	onAttributeChange?: () => void
 }
 
 export class ProductAttributes extends Component<
@@ -23,14 +25,15 @@ export class ProductAttributes extends Component<
 	constructor(props: ProductAttributesProps) {
 		super(props)
 
-		const itemsIds: { [key: number]: number } = {}
+		const itemsIds: { [key: number]: number | undefined } = {}
 
 		this.props.attributes.forEach((attribute) => {
 			if (!attribute.items?.length) {
 				return
 			}
 
-			itemsIds[attribute.id!] = attribute.selected || attribute.items[0].id!
+			// itemsIds[attribute.id!] = attribute.selected || attribute.items[0].id!
+			itemsIds[attribute.id!] = attribute.selected || undefined
 		})
 
 		this.state = {
@@ -38,16 +41,32 @@ export class ProductAttributes extends Component<
 		}
 	}
 
+	componentDidMount(): void {
+		// If there is no attributes on this product, notify that "every is selected"
+		if (!Object.keys(this.state.attributeItems).length) {
+			if (this.props.onAttributeChange) {
+				this.props.onAttributeChange()
+			}
+		}
+	}
+
 	changeSelectedAttributeItem(attributeId: number, attributeItemId: number) {
 		if (this.state.attributeItems[attributeId] == attributeItemId) {
 			return
 		}
-		this.setState((prevState) => ({
-			attributeItems: {
-				...prevState.attributeItems,
-				[attributeId]: attributeItemId,
-			},
-		}))
+		this.setState(
+			(prevState) => ({
+				attributeItems: {
+					...prevState.attributeItems,
+					[attributeId]: attributeItemId,
+				},
+			}),
+			() => {
+				if (this.props.onAttributeChange) {
+					this.props.onAttributeChange()
+				}
+			}
+		)
 	}
 
 	render(): ReactNode {
@@ -86,7 +105,7 @@ export class ProductAttributes extends Component<
 													!cart ? "product" : "cart-item"
 												}-attribute-${convertKebabCase(
 													attribute.name!
-												)}-${convertKebabCase(attributeItem.value!)}${
+												)}-${convertKebabCase(attributeItem.value!, false)}${
 													this.state.attributeItems[attribute.id!] ==
 													attributeItem.id!
 														? "-selected"
@@ -148,7 +167,7 @@ export class ProductAttributes extends Component<
 													!cart ? "product" : "cart-item"
 												}-attribute-${convertKebabCase(
 													attribute.name!
-												)}-${convertKebabCase(attributeItem.value!)}${
+												)}-${convertKebabCase(attributeItem.value!, false)}${
 													this.state.attributeItems[attribute.id!] ==
 													attributeItem.id!
 														? "-selected"
@@ -180,7 +199,9 @@ export class ProductAttributes extends Component<
 											>
 												<span
 													className="w-full h-full block"
-													style={{ backgroundColor: attributeItem.value }}
+													style={{
+														backgroundColor: attributeItem.value,
+													}}
 												></span>
 											</button>
 										))}

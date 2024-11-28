@@ -6,7 +6,6 @@ import { ProductAttributes } from "../../pages/ProductDetailsPage/ProductAttribu
 import { graphql } from "../../utils/graphql"
 
 type CartState = {
-	isCartOpen: boolean
 	isPlacingOrder: boolean
 }
 
@@ -18,7 +17,6 @@ export class Cart extends Component<{}, CartState> {
 		super(props)
 
 		this.state = {
-			isCartOpen: false,
 			isPlacingOrder: false,
 		}
 
@@ -31,10 +29,9 @@ export class Cart extends Component<{}, CartState> {
 	 * @param clearCart function to clear the cart after the order
 	 */
 	placeOrder(products: CartProduct[], clearCart: () => void) {
-		this.setState((prevState) => ({
-			isCartOpen: prevState.isCartOpen,
+		this.setState({
 			isPlacingOrder: true,
-		}))
+		})
 
 		graphql(
 			`
@@ -54,8 +51,6 @@ export class Cart extends Component<{}, CartState> {
 			}
 		)
 			.then((res) => {
-				console.log({ res })
-
 				// error returned from request
 				if (res.errors?.length) {
 					console.error(res.errors![0].message)
@@ -67,10 +62,9 @@ export class Cart extends Component<{}, CartState> {
 				console.error(err)
 			})
 			.finally(() => {
-				this.setState((prevState) => ({
-					isCartOpen: prevState.isCartOpen,
+				this.setState({
 					isPlacingOrder: false,
-				}))
+				})
 			})
 	}
 
@@ -82,7 +76,8 @@ export class Cart extends Component<{}, CartState> {
 						return <></>
 					}
 
-					const { products, productQuantity, productTotalValue } = cartData.cart
+					const { products, productQuantity, productTotalValue, isCartOpen } =
+						cartData.cart
 
 					return (
 						<div>
@@ -92,9 +87,7 @@ export class Cart extends Component<{}, CartState> {
 								className="relative"
 								onClick={() => {
 									// togle cart open on button press
-									this.setState((prevState) => ({
-										isCartOpen: !prevState.isCartOpen,
-									}))
+									cartData.toggleCartOpenClose(!isCartOpen)
 								}}
 							>
 								<svg
@@ -124,8 +117,9 @@ export class Cart extends Component<{}, CartState> {
 								)}
 							</button>
 							{/* Cart overlay */}
-							{this.state.isCartOpen && (
+							{isCartOpen && (
 								<div
+									data-testid="cart-overlay"
 									className="fixed top-20 left-0 w-full h-full bg-[#39374838] z-20"
 									onClick={(event) => {
 										// closes the cart overlay when clicking outside the cart itself
@@ -133,7 +127,7 @@ export class Cart extends Component<{}, CartState> {
 											this.cartRef.current &&
 											!this.cartRef.current.contains(event.target as Node)
 										) {
-											this.setState({ isCartOpen: false })
+											cartData.toggleCartOpenClose(false)
 										}
 									}}
 								>
